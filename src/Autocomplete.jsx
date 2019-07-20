@@ -1,45 +1,28 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import TextField from '@material-ui/core/TextField';
-import Popper from '@material-ui/core/Popover';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import './Autocomplete.css';
 
 const useStyles = makeStyles(theme => ({
   textField: {
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
-  },
-  typography: {
-    padding: theme.spacing(2),
   }
 
 }));
 
-const SearchPopper = withStyles({
-  paper: {
-    outline: 'none',
-    position: 'absolute',
-    top: '10%',
-    width: '80%',
-    maxHeight: 'calc(100% - 32px)',
-    minHeight: '20px',
-    overflowX: 'hidden',
-    overflowY: 'auto'
-  },
-  label: {
-    textTransform: 'capitalize',
-  },
-})(Popper);
 
 class Autocomplete extends Component {
    
     static propTypes = {
-       quiries: PropTypes.array
+       queries: PropTypes.array,
+       loadOrg: PropTypes.func
+
     };
 
     static defaultProperty={
-        quiries: []
+        queries: []
       };
 
     constructor(props) {
@@ -48,13 +31,14 @@ class Autocomplete extends Component {
 	      activeQuery: 0,
 	      filteredQueries: [],
 	      showQueries: false,
-	      userInput: '',
-	      anchorEl: null
+	      userInput: ''
 	    };
   }
 
   onChange = (e) => {
+    this.props.loadOrg(e.currentTarget.value);
 
+    this.setState({userInput: e.currentTarget.value});
 
     const { queries } = this.props;
     const input = e.currentTarget.value;
@@ -67,12 +51,10 @@ class Autocomplete extends Component {
     this.setState({
       activeQuery: 0,
       filteredQueries,
-      showQueries: true,
-      anchorEl: e.currentTarget,
-      userInput: e.currentTarget.value
+      showQueries: true
     });
      
-     e.currentTarget.focus();
+     
   };
 
   onClick = (e) => {
@@ -81,7 +63,6 @@ class Autocomplete extends Component {
       filteredQueries: [],
       showQueries: false,
       userInput: e.currentTarget.innerText,
-      anchorEl: null
     });
   };
 
@@ -111,25 +92,21 @@ class Autocomplete extends Component {
     }
   };
 
-  handleClose = () => {
-    this.setState({anchorEl: null});
-  };
-
 
 render () {
 
 	let queriesListComponent = null;
 
-	let { showQueries, userInput, filteredQueries, anchorEl} = this.state;
+	let { showQueries, userInput, filteredQueries, activeQuery } = this.state;
 
 	if (showQueries && userInput) {
       if (filteredQueries.length) {
         queriesListComponent = (
-          <ul class="queries">
+          <ul className="queries">
             {filteredQueries.map((query, index) => {
 
               return (
-                <li  key={query} onClick={this.onClick}>
+                <li  key={query} onClick={this.onClick} className={index == activeQuery?'active':null}>
                   {query}
                 </li>
               );
@@ -145,40 +122,25 @@ render () {
       }
     }
 
-    const open = Boolean(anchorEl);
-    const id = open ? 'simple-popover' : undefined;
 
      
       return (
 	   <React.Fragment>
-        <TextField
-	        id="autocomplete"
-	        label="Введите данные организации"
-	        value={userInput}
-	        classNames={useStyles.textField}
-	        margin="normal"
-	        variant="outlined"
-	        fullWidth
-	        onChange={this.onChange}
-            onKeyDown={this.onKeyDown}
+	        <TextField
+		        id="autocomplete"
+		        label="Введите данные организации"
+		        value={userInput}
+		        classNames={useStyles.textField}
+		        margin="normal"
+		        variant="outlined"
+		        fullWidth
+		        onChange={this.onChange}
+	            onKeyDown={this.onKeyDown}
 
-         /> 
-          <SearchPopper
-	        id={id}
-	        open={open}
-	        anchorEl={anchorEl}
-	        onClose={this.handleClose}
-	        anchorOrigin={{
-	          vertical: 'bottom',
-	          horizontal: 'left',
-	        }}
-	        transformOrigin={{
-	          vertical: 'top',
-	          horizontal: 'left',
-	        }}
-	      >
-            {queriesListComponent}
-          </SearchPopper>
+	         /> 
+	       <div className="query_list">
+	        {queriesListComponent}
+	       </div>
        </React.Fragment>
 	  );
 	}
